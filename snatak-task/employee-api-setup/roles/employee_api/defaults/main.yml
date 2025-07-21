@@ -1,0 +1,10 @@
+---
+# Default values can be overridden with --extra-vars or host/group vars
+scylla_user: cassandra
+scylla_pass: cassandra
+scylla_app_user: scylladb
+scylla_app_password: password
+#redis_bind_ip: "0.0.0.0"
+app_repo: "https://github.com/OT-MICROSERVICES/employee-api.git"
+app_dir: "/home/ubuntu/employee-api"
+  

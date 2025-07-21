@@ -1,0 +1,64 @@
+---
+#- name: Configure scylla.yaml
+ # lineinfile:
+  #  path: /etc/scylla/scylla.yaml
+   # regexp: "{{ item.regexp }}"
+    #line: "{{ item.line }}"
+  #loop:
+   # - { regexp: '^seeds:', line: 'seeds: "{{ ansible_host }}"' }
+    #- { regexp: '^listen_address:', line: 'listen_address: "{{ ansible_host }}"' }
+    #- { regexp: '^rpc_address:', line: 'rpc_address: "{{ ansible_host }}"' }
+    #- { regexp: '^authenticator:', line: 'authenticator: PasswordAuthenticator' }
+    #- { regexp: '^authorizer:', line: 'authorizer: CassandraAuthorizer' }
+
+
+
+- name: Render scylla.yaml configuration file
+  template:
+    src: scylla.yaml.j2
+    dest: /etc/scylla/scylla.yaml
+    owner: scylla
+    group: scylla
+    mode: '0644'
+  become: true
+
+
+- name: Run Scylla IO setup
+  command: /opt/scylladb/scripts/scylla_io_setup
+
+- name: Start Scylla
+  service:
+    name: scylla-server
+    enabled: yes
+    state: started
+
+
+- name: Ensure scylladb user exists with password
+  ansible.builtin.user:
+    name: scylladb
+    password: "{{ 'password' | password_hash('sha512') }}"
+    shell: /bin/bash
+    comment: "ScyllaDB User"
+    state: present
+
+
+
+- name: Create keyspace, user, and table in ScyllaDB
+  shell: |
+    cqlsh {{ ansible_host }} -u {{ scylla_user }} -p {{ scylla_pass }} <<EOF
+    CREATE USER IF NOT EXISTS {{ scylla_app_user }} WITH PASSWORD '{{ scylla_app_password }}' SUPERUSER;
+    GRANT ALL PERMISSIONS ON ALL KEYSPACES TO {{ scylla_app_user }};
+    CREATE KEYSPACE IF NOT EXISTS employee_db WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
+    USE employee_db;
+    CREATE TABLE IF NOT EXISTS employee_salary (
+      id text,
+      process_date text,
+      name text,
+      salary float,
+      status text,
+      PRIMARY KEY (id, process_date)
+    ) WITH CLUSTERING ORDER BY (process_date DESC);
+    EOF
+  become: true
+
+

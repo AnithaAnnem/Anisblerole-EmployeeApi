@@ -1,0 +1,23 @@
+---
+- name: Download Redis
+  shell: |
+   curl -fsSL https://packages.redis.io/gpg | gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+   chmod 644 /usr/share/keyrings/redis-archive-keyring.gpg
+   echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/redis.list
+ # shell: |
+ #   sudo apt-get install lsb-release curl gpg
+ #   curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg  
+ #   sudo chmod 644 /usr/share/keyrings/redis-archive-keyring.gpg
+ #  echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+
+- name: Install Redis
+  apt:
+    update_cache: yes
+    name: redis
+    state: present
+
+- name: Enable Redis service
+  service:
+    name: redis-server
+    enabled: yes
+    state: started

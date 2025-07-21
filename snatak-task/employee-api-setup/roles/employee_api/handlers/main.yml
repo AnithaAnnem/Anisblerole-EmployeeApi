@@ -1,0 +1,10 @@
+---
+- name: restart redis
+  service:
+    name: redis-server
+    state: restarted
+
+- name: restart scylla
+  service:
+    name: scylla-server
+    state: restarted

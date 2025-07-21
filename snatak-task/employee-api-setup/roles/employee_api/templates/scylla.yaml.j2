@@ -1,0 +1,12 @@
+listen_address: "{{ hostvars[inventory_hostname]['ansible_host'] }}"
+rpc_address: "{{ hostvars[inventory_hostname]['ansible_host'] }}"
+rpc_port: 9042  # Native transport port (CQL)
+
+seed_provider:
+  - class_name: org.apache.cassandra.locator.SimpleSeedProvider
+    parameters:
+      - seeds: "{{ hostvars[inventory_hostname]['ansible_host'] }}"
+
+authenticator: PasswordAuthenticator
+authorizer: CassandraAuthorizer
+start_native_transport: true
